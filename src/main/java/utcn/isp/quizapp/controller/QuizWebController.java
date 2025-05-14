@@ -3,7 +3,11 @@ package utcn.isp.quizapp.controller;
 import utcn.isp.quizapp.model.Question;
 import utcn.isp.quizapp.service.Leaderboard;
 import utcn.isp.quizapp.service.QuizSessionService;
+import utcn.isp.quizapp.service.ActiveSessionsService;
+import utcn.isp.quizapp.service.CompletedQuizService; // Added import
+import utcn.isp.quizapp.model.CompletedQuiz; // Added import
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,20 +23,25 @@ public class QuizWebController {
 
     private final QuizSessionService quizSessionService;
     private final Leaderboard leaderboard;
+    private final ActiveSessionsService activeSessionsService;
+    private final CompletedQuizService completedQuizService; // Added dependency
+
+    @Value("${dashboard.password}") // Inject password from application.properties
+    private String expectedDashboardPassword;
 
     @Autowired
-    public QuizWebController(QuizSessionService quizSessionService, Leaderboard leaderboard) {
+    public QuizWebController(QuizSessionService quizSessionService, 
+                             Leaderboard leaderboard, 
+                             ActiveSessionsService activeSessionsService,
+                             CompletedQuizService completedQuizService) { // Added dependency
         this.quizSessionService = quizSessionService;
         this.leaderboard = leaderboard;
+        this.activeSessionsService = activeSessionsService;
+        this.completedQuizService = completedQuizService; // Initialize dependency
     }
 
     @GetMapping("/")
     public String index(SessionStatus sessionStatus, HttpSession session) {
-        // If coming back to index, effectively end previous game by invalidating session service instance
-        // or resetting its state. @SessionScope handles instance per session.
-        // For a cleaner start, we can explicitly reset or rely on new session if old one timed out.
-        // Or, if QuizSessionService is designed to be reset:
-        // quizSessionService.resetGame();
         return "index";
     }
 
@@ -63,7 +72,6 @@ public class QuizWebController {
         Question currentQuestion = quizSessionService.getCurrentQuestion();
         model.addAttribute("question", currentQuestion);
         model.addAttribute("game", quizSessionService.getCurrentGame()); 
-        // For timer display, pass remaining time
         long elapsedTime = System.currentTimeMillis() - quizSessionService.getCurrentGame().getStartTime();
         long quizDurationMs = 60 * 1000; // Should be consistent with QuizSessionService
         long remainingTime = Math.max(0, (quizDurationMs - elapsedTime) / 1000); // in seconds
@@ -90,27 +98,68 @@ public class QuizWebController {
 
     @GetMapping("/gameOver")
     public String gameOver(Model model, SessionStatus sessionStatus, HttpSession httpSession) {
-        if (!quizSessionService.isGameActive()) {
-             // If no game was active, perhaps redirect to index or show a generic message
+        if (!quizSessionService.isGameActive() && quizSessionService.getUserName().isEmpty()) {
             model.addAttribute("message", "No active game found or game already ended.");
             model.addAttribute("leaderboard", leaderboard.getAllScoresSorted());
-            return "gameOver"; // Still show leaderboard
+            quizSessionService.endGame(); 
+            return "gameOver";
         }
         
-        leaderboard.addScore(quizSessionService.getUserName(), quizSessionService.getScore());
-        model.addAttribute("username", quizSessionService.getUserName());
-        model.addAttribute("score", quizSessionService.getScore());
+        String userName = quizSessionService.getUserName();
+        int score = quizSessionService.getScore();
+
+        leaderboard.addScore(userName, score);
+        completedQuizService.addCompletedQuiz(new CompletedQuiz(userName, score)); // Add to completed quizzes
+
+        model.addAttribute("username", userName);
+        model.addAttribute("score", score);
         model.addAttribute("leaderboard", leaderboard.getAllScoresSorted());
         
-        // quizSessionService.endGame(); // Perform any cleanup in session service
-        // SessionStatus.setComplete() can be used if the controller is @SessionAttributes managed.
-        // For @SessionScope beans, their lifecycle is tied to the HTTP session.
-        // To ensure the QuizSessionService bean is fresh for a new game if the user navigates back,
-        // one might invalidate the session or rely on the user starting a "new game" via POST /start
-        // which re-initializes the QuizSessionService's state.
-        // httpSession.removeAttribute("scopedTarget.quizSessionService"); // One way to force re-creation on next access
-        // Or, more simply, ensure startNewGame fully reinitializes the QuizSessionService state.
-
+        quizSessionService.endGame();
         return "gameOver";
+    }
+
+    @GetMapping("/dashboard-login")
+    public String dashboardLoginPage(HttpSession session) {
+        if (Boolean.TRUE.equals(session.getAttribute("dashboardAuthorized"))) {
+            return "redirect:/dashboard"; // Already logged in
+        }
+        return "dashboard-login";
+    }
+
+    @PostMapping("/dashboard-login")
+    public String processDashboardLogin(@RequestParam("password") String password, HttpSession session, Model model) {
+        if (expectedDashboardPassword.equals(password)) {
+            session.setAttribute("dashboardAuthorized", true);
+            return "redirect:/dashboard";
+        } else {
+            return "redirect:/dashboard-login?error";
+        }
+    }
+
+    @GetMapping("/dashboard")
+    public String dashboard(Model model, HttpSession session) {
+        if (!Boolean.TRUE.equals(session.getAttribute("dashboardAuthorized"))) {
+            return "redirect:/dashboard-login";
+        }
+        model.addAttribute("activeSessions", activeSessionsService.getActiveSessions());
+        model.addAttribute("activeSessionCount", activeSessionsService.getActiveSessionCount());
+        return "dashboard";
+    }
+
+    @GetMapping("/dashboard-logout")
+    public String dashboardLogout(HttpSession session) {
+        session.removeAttribute("dashboardAuthorized");
+        return "redirect:/dashboard-login";
+    }
+
+    @GetMapping("/dashboard-results")
+    public String dashboardResults(Model model, HttpSession session) {
+        if (!Boolean.TRUE.equals(session.getAttribute("dashboardAuthorized"))) {
+            return "redirect:/dashboard-login";
+        }
+        model.addAttribute("completedQuizzes", completedQuizService.getCompletedQuizzes());
+        model.addAttribute("completedQuizCount", completedQuizService.getCompletedQuizCount());
+        return "dashboard-results"; // New template
     }
 }

@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
 
+import jakarta.servlet.http.HttpSession; // Added import
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
@@ -19,13 +21,20 @@ public class QuizSessionService implements Serializable { // Serializable for se
     private static final long serialVersionUID = 1L;
     private static final Logger logger = LoggerFactory.getLogger(QuizSessionService.class); // SLF4J Logger
 
+    private final ActiveSessionsService activeSessionsService; // Added dependency
+    private final HttpSession httpSession; // Added dependency
+
     private QuizGame currentGame;
     private List<Question> allQuestions;
     private final String questionsResourceName;
     private static final long QUIZ_DURATION_MS = 60 * 1000; // 1 minute
 
-    public QuizSessionService(@Value("${quiz.questions.file-name:questions.txt}") String questionsResourceName) {
+    public QuizSessionService(@Value("${quiz.questions.file-name:questions.txt}") String questionsResourceName,
+                              ActiveSessionsService activeSessionsService, // Added dependency
+                              HttpSession httpSession) { // Added dependency
         this.questionsResourceName = questionsResourceName;
+        this.activeSessionsService = activeSessionsService; // Initialize dependency
+        this.httpSession = httpSession; // Initialize dependency
         logger.info("Attempting to load questions from resource: {}", this.questionsResourceName); // Log the filename
         loadAllQuestions();
     }
@@ -44,11 +53,13 @@ public class QuizSessionService implements Serializable { // Serializable for se
         if (allQuestions.isEmpty()) {
             logger.warn("Starting game for user '{}' with no questions loaded.", userName);
             this.currentGame = new QuizGame(Collections.emptyList(), userName);
+            activeSessionsService.addSession(httpSession.getId(), this.currentGame); // Add session
             return;
         }
         List<Question> currentQuizQuestions = new java.util.ArrayList<>(allQuestions);
         Collections.shuffle(currentQuizQuestions);
         this.currentGame = new QuizGame(currentQuizQuestions, userName);
+        activeSessionsService.addSession(httpSession.getId(), this.currentGame); // Add session
     }
 
     public QuizGame getCurrentGame() {
@@ -87,6 +98,7 @@ public class QuizSessionService implements Serializable { // Serializable for se
         // or all questions are answered. This method can be used for explicit cleanup if needed.
         // For now, the controller will handle leaderboard updates.
         // currentGame = null; // Or keep it for displaying final score until a new game starts
+        activeSessionsService.removeSession(httpSession.getId()); // Remove session
     }
 
     public int getScore() {

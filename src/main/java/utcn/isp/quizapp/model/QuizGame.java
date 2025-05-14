@@ -50,6 +50,10 @@ public class QuizGame {
         return currentScore;
     }
 
+    public int getCurrentQuestionIndex() { // Added getter
+        return currentQuestionIndex;
+    }
+
     public String getUserName() {
         return currentUser.getName();
     }
