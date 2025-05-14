@@ -70,6 +70,9 @@ After a successful run, your image will be available at
 
 To run the application in Azure using Container Apps, execute the following commands:
 
+**NOTE** Bellow commands requires Azure CLI client to be installed on your computer.
+**NOTE** It is assumed the container image is already pushed to ghcr and is public.
+
 ```sh
 az login
 
@@ -77,8 +80,6 @@ az containerapp env create --name my-quiz --resource-group my-quiz-group --locat
 
 az containerapp create --name isp-quiz-app --resource-group isp2025 --environment my-quiz --image ghcr.io/automatica-cluj/isp-quiz:latest --target-port 8888 --ingress external --transport http
 ```
-
-**NOTE** ABove command assume the container image is already pushed to ghcr and is public. 
 
 **NOTE** You will need to replace speciffic names from above commands with yours. 
 
@@ -90,4 +91,6 @@ To deploy a new version of your container image (e.g., a new latest tag or anoth
 az containerapp update --name isp-quiz-app --resource-group isp2025 --image ghcr.io/automatica-cluj/isp-quiz:latest
 ```
 
-**NOTE** Above commands requires Azure CLI client to be installed on your computer. 
+Stopping and starting the app can be done also via azure portal dashboard:
+
+![img2.png](docs/img2.png)

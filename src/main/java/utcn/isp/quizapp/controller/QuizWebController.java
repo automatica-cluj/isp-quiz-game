@@ -32,7 +32,7 @@ public class QuizWebController {
         // or resetting its state. @SessionScope handles instance per session.
         // For a cleaner start, we can explicitly reset or rely on new session if old one timed out.
         // Or, if QuizSessionService is designed to be reset:
-        // quizSessionService.resetGame(); // if such a method exists
+        // quizSessionService.resetGame();
         return "index";
     }
 
