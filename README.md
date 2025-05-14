@@ -73,23 +73,53 @@ To run the application in Azure using Container Apps, execute the following comm
 **NOTE** Bellow commands requires Azure CLI client to be installed on your computer.
 **NOTE** It is assumed the container image is already pushed to ghcr and is public.
 
-```sh
-az login
-
-az containerapp env create --name my-quiz --resource-group my-quiz-group --location westeurope
-
-az containerapp create --name isp-quiz-app --resource-group isp2025 --environment my-quiz --image ghcr.io/automatica-cluj/isp-quiz:latest --target-port 8888 --ingress external --transport http
+### 1. Create Resource Group
+```bash
+az group create --name cursIsp2025 --location westeurope
 ```
+This command creates a new **Resource Group** in Azure:
+- **Name:** `cursIsp2025` - This is the identifier for the resource group
+- **Location:** `westeurope` - The Azure region where the resource group will be created
+- **Purpose:** Resource groups are logical containers that hold related Azure resources for a solution. All Azure resources must belong to a resource group.
 
-**NOTE** You will need to replace speciffic names from above commands with yours. 
+### 2. Create Container App Environment
+```bash
+az containerapp env create --name my-quiz --resource-group cursIsp2025 --location westeurope
+```
+This command creates a **Container App Environment**:
+- **Name:** `my-quiz` - The name of the container environment
+- **Resource Group:** `cursIsp2025` - Places this environment in the previously created resource group
+- **Location:** `westeurope` - Same region as the resource group
+- **Purpose:** A Container App Environment is the secure boundary around groups of container apps. Apps in the same environment share the same virtual network and write logs to the same Log Analytics workspace.
 
-After deployment, your app will be accessible via the external URL provided by Azure.
+### 3. Create Container App
+```bash
+az containerapp create --name isp-quiz-app --resource-group cursIsp2025 --environment my-quiz --image ghcr.io/automatica-cluj/isp-quiz:latest --target-port 8888 --ingress external --transport http
+```
+This command creates the actual **Container App**:
+- **Name:** `isp-quiz-app` - The name of your container app
+- **Resource Group:** `cursIsp2025` - Places it in the same resource group
+- **Environment:** `my-quiz` - Deploys it to the container environment created in step 2
+- **Image:** `ghcr.io/automatica-cluj/isp-quiz:latest` - The Docker image from GitHub Container Registry
+- **Target Port:** `8888` - The port your application listens on inside the container
+- **Ingress:** `external` - Makes the app accessible from the internet (not just within the virtual network)
+- **Transport:** `http` - Uses HTTP protocol for communication
+
+### 4. Summary
+These three commands work together to:
+1. Set up a logical grouping for your Azure resources
+2. Create a managed environment for running containerized applications
+3. Deploy your quiz application from a Docker image, making it accessible via HTTP on the internet
+
+### 5. Update Container App
 
 To deploy a new version of your container image (e.g., a new latest tag or another tag) to your Azure Container App, you should use az containerapp update.
 
 ```sh
-az containerapp update --name isp-quiz-app --resource-group isp2025 --image ghcr.io/automatica-cluj/isp-quiz:latest
+az containerapp update --name isp-quiz-app --resource-group cursIsp2025 --image ghcr.io/automatica-cluj/isp-quiz:latest
 ```
+
+### 6. Update Container App
 
 Stopping and starting the app can be done also via azure portal dashboard:
 
