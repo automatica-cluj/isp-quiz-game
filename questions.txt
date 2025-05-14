@@ -1,0 +1,70 @@
+What is the main purpose of the `static` keyword in Java?
+To make a variable or method belong to the class, rather than an instance of the class.
+To make a variable constant.
+To allow a method to be overridden.
+To indicate a method is abstract.
+A
+
+Which of these is NOT a primitive data type in Java?
+int
+String
+boolean
+char
+B
+
+What is the default value of a boolean variable in Java?
+true
+false
+0
+null
+B
+
+Which keyword is used to inherit a class in Java?
+super
+this
+extends
+implements
+C
+
+What does JVM stand for?
+Java Very Large Machine
+Java Virtual Machine
+Java Verified Machine
+Java Visual Machine
+B
+
+Which collection class allows duplicate elements?
+HashSet
+TreeSet
+ArrayList
+HashMap
+C
+
+What is the entry point method for a Java application?
+start()
+main()
+run()
+init()
+B
+
+Which access modifier provides the widest accessibility?
+private
+default (package-private)
+protected
+public
+D
+
+How do you declare a constant in Java?
+const PI = 3.14;
+final double PI = 3.14;
+static final PI = 3.14;
+constant double PI = 3.14;
+B
+
+What is an interface in Java?
+A class that cannot be instantiated.
+A blueprint of a class, containing static methods and final variables.
+A collection of abstract methods and constants.
+A concrete class with full implementation.
+C
+

@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  quiz-app:
+    build: .
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./leaderboard_data.txt:/app/leaderboard_data.txt
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    restart: unless-stopped
