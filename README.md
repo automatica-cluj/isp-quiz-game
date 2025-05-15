@@ -87,19 +87,19 @@ This command creates a new **Resource Group** in Azure:
 az containerapp env create --name my-quiz --resource-group cursIsp2025 --location westeurope
 ```
 This command creates a **Container App Environment**:
-- **Name:** `my-quiz` - The name of the container environment
+- **Name:** `my-quiz-env` - The name of the container environment
 - **Resource Group:** `cursIsp2025` - Places this environment in the previously created resource group
 - **Location:** `westeurope` - Same region as the resource group
 - **Purpose:** A Container App Environment is the secure boundary around groups of container apps. Apps in the same environment share the same virtual network and write logs to the same Log Analytics workspace.
 
 ### 3. Create Container App
 ```bash
-az containerapp create --name isp-quiz-app --resource-group cursIsp2025 --environment my-quiz --image ghcr.io/automatica-cluj/isp-quiz:latest --target-port 8888 --ingress external --transport http
+az containerapp create --name isp-quiz-app --resource-group cursIsp2025 --environment my-quiz-env --image ghcr.io/automatica-cluj/isp-quiz:latest --target-port 8888 --ingress external --transport http
 ```
 This command creates the actual **Container App**:
 - **Name:** `isp-quiz-app` - The name of your container app
 - **Resource Group:** `cursIsp2025` - Places it in the same resource group
-- **Environment:** `my-quiz` - Deploys it to the container environment created in step 2
+- **Environment:** `my-quiz-emv` - Deploys it to the container environment created in step 2
 - **Image:** `ghcr.io/automatica-cluj/isp-quiz:latest` - The Docker image from GitHub Container Registry
 - **Target Port:** `8888` - The port your application listens on inside the container
 - **Ingress:** `external` - Makes the app accessible from the internet (not just within the virtual network)

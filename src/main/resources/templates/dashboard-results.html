@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Completed Quizzes Dashboard</title>
-    <meta http-equiv="refresh" content="1"> <!-- Auto-refresh every 1 second -->
+    <meta http-equiv="refresh" content="3"> <!-- Auto-refresh every 3 second -->
     <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"> 
     <style>
         body {
@@ -54,6 +54,14 @@
         .nav-links a:hover {
             background-color: #0056b3;
         }
+        /* Style for the download link/button */
+        .download-link {
+            background-color: #28a745; /* Green color for download */
+            color: white;
+        }
+        .download-link:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
     </style>
 </head>
 <body>
@@ -61,6 +69,7 @@
         <h1>Completed Quiz Results</h1>
         <div class="nav-links">
             <a th:href="@{/dashboard}">View Active Sessions</a>
+            <a th:href="@{/download-leaderboard}" class="download-link">Download Leaderboard</a>
             <a th:href="@{/dashboard-logout}" style="float: right;">Logout</a>
         </div>
         

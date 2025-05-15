@@ -15,8 +15,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.support.SessionStatus;
 
+import jakarta.servlet.http.HttpServletResponse; // Added import
 import jakarta.servlet.http.HttpSession; // For Spring Boot 3+
 // import javax.servlet.http.HttpSession; // For Spring Boot 2.x
+import java.io.InputStream; // Added import
+import java.io.OutputStream; // Added import
+import java.nio.file.Files; // Added import
+import java.nio.file.Path; // Added import
+import java.nio.file.Paths; // Added import
+import java.io.IOException; // Added import
 
 @Controller
 public class QuizWebController {
@@ -28,6 +35,9 @@ public class QuizWebController {
 
     @Value("${dashboard.password}") // Inject password from application.properties
     private String expectedDashboardPassword;
+
+    @Value("${quiz.leaderboard.save-path:leaderboard_data.txt}") // Inject leaderboard file path
+    private String leaderboardFilePath;
 
     @Autowired
     public QuizWebController(QuizSessionService quizSessionService, 
@@ -161,5 +171,37 @@ public class QuizWebController {
         model.addAttribute("completedQuizzes", completedQuizService.getCompletedQuizzes());
         model.addAttribute("completedQuizCount", completedQuizService.getCompletedQuizCount());
         return "dashboard-results"; // New template
+    }
+
+    @GetMapping("/download-leaderboard")
+    public void downloadLeaderboardFile(HttpSession session, HttpServletResponse response) throws IOException {
+        if (!Boolean.TRUE.equals(session.getAttribute("dashboardAuthorized"))) {
+            response.sendRedirect("/dashboard-login"); // Redirect if not authorized
+            return;
+        }
+
+        Path filePath = Paths.get(leaderboardFilePath);
+        if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Leaderboard file not found or not readable.");
+            return;
+        }
+
+        response.setContentType("text/plain");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + filePath.getFileName().toString() + "\"");
+
+        try (InputStream inputStream = Files.newInputStream(filePath);
+             OutputStream outputStream = response.getOutputStream()) {
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+        } catch (IOException e) {
+            // Log error, maybe send a different error response
+            System.err.println("Error writing leaderboard file to output stream: " + e.getMessage());
+            if (!response.isCommitted()) {
+                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error occurred while downloading the file.");
+            }
+        }
     }
 }
