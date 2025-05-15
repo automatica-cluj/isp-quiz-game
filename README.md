@@ -1,23 +1,24 @@
+
 # ISP Quiz App
 
-## Introduction 
+## Introduction
 
-This project is a sample application which implements a quiz like game where user has a limited time to answer some quiz questions. Game will end when user make a mistake or when time expires. 
+This project is a sample application which implements a quiz like game where user has a limited time to answer some quiz questions. Game will end when user make a mistake or when time expires.
 
 ## General Architecture
 
 * **Backend:** The application is built with Java 21 using the Spring Boot framework. The main entry point is the `QuizApplication.java` class. The backend handles quiz logic, user sessions, and leaderboard management.
 * **MVC Pattern:** The project follows the Model-View-Controller (MVC) pattern:
-   * **Model:** Classes like `Question`, `QuizGame`, and `User` represent the core data structures.
-   * **View:** HTML templates (e.g., `index.html`, `quiz.html`, `gameOver.html`) are used for rendering the UI.
-   * **Controller:** The `QuizWebController` manages HTTP requests, user interactions, and navigation between views.
+    * **Model:** Classes like `Question`, `QuizGame`, and `User` represent the core data structures.
+    * **View:** HTML templates (e.g., `index.html`, `quiz.html`, `gameOver.html`) are used for rendering the UI.
+    * **Controller:** The `QuizWebController` manages HTTP requests, user interactions, and navigation between views.
 * **Service Layer:** Services such as `QuizSessionService`, `Leaderboard`, and `QuestionLoader` encapsulate business logic, quiz state management, and data loading.
 * **Persistence:** Quiz questions and leaderboard data are stored in text files, which are loaded and managed by the service layer.
 * **Build & Deployment:**
-   * **Maven** is used for building the project and managing dependencies.
-   * **Docker** is used for containerization, with a Dockerfile and support for Docker Compose.
-   * **CI/CD** is set up with GitHub Actions to build and push Docker images to GitHub Container Registry (GHCR).
-   * **Cloud Deployment:** The app can be deployed to Azure Container Apps using the Azure CLI.
+    * **Maven** is used for building the project and managing dependencies.
+    * **Docker** is used for containerization, with a Dockerfile and support for Docker Compose.
+    * **CI/CD** is set up with GitHub Actions to build and push Docker images to GitHub Container Registry (GHCR).
+    * **Cloud Deployment:** The app can be deployed to Azure Container Apps using the Azure CLI.
 
 ## Build and Run with Docker
 
@@ -37,13 +38,13 @@ docker compose up --build
 
 The app will be available at [http://localhost:8888](http://localhost:8888).
 
-## Build and Run from IDE 
+## Build and Run from IDE
 
-Load the project in your preffered IDE. Build the application from IDE and launching main class QuizApplication.java. 
+Load the project in your preffered IDE. Build the application from IDE and launching main class QuizApplication.java.
 
 ## Build and Push Docker Image with GitHub Actions
 
-This project uses GitHub Actions to automatically build a Docker image and push it to [GitHub Container Registry (GHCR)](https://ghcr.io). 
+This project uses GitHub Actions to automatically build a Docker image and push it to [GitHub Container Registry (GHCR)](https://ghcr.io).
 
 ### How it works
 
@@ -59,7 +60,7 @@ After code is pushed to master branch check Actions tab for the complition of th
 
 ![img.png](docs/img.png)
 
-Once build is complete you should find the newly generated container in ghcr. 
+Once build is complete you should find the newly generated container in ghcr.
 
 ![img_1.png](docs/img_1.png)
 
@@ -119,8 +120,16 @@ To deploy a new version of your container image (e.g., a new latest tag or anoth
 az containerapp update --name isp-quiz-app --resource-group cursIsp2025 --image ghcr.io/automatica-cluj/isp-quiz:latest
 ```
 
-### 6. Update Container App
+Alternatively you can use the Azure portal to update the image and restart the app (after new docker image has been generated) by clicking refresh button (see image below).
+
+### 6. Stop Container App
 
 Stopping and starting the app can be done also via azure portal dashboard:
 
 ![img2.png](docs/img2.png)
+
+### 7. Cost savings
+
+To avoid incurring costs for the resources created, you can stop the container app and delete the resource group. Stopping the app will pause it, and deleting the resource group will remove all associated resources.
+
+This can be done from azure portal or via CLI.
