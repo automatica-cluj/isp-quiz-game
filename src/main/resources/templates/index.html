@@ -19,7 +19,7 @@
         <h1>Welcome to Github Actions Demo Quiz!</h1>
         <form th:action="@{/start}" method="post">
             <div>
-                <label for="username">Enter your name:</label>
+                <label for="username">Enter your student id:</label>
                 <input type="text" id="username" name="username" required autofocus/>
             </div>
             <div th:if="${error}" class="error" th:text="${error}"></div>
