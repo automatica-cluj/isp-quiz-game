@@ -1,6 +1,8 @@
 dan:1
 dda:0
 mihai:2
+mihai2:1
+demosm:1
 aline:2
 alin:2
 demo:3
