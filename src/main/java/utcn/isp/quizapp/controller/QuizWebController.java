@@ -172,6 +172,11 @@ public class QuizWebController {
         return "leaderboard";
     }
 
+    @GetMapping("/about")
+    public String aboutPage() {
+        return "about";
+    }
+
     private String generateFunUsername() {
         String[] adjectives = {
                 // Personality traits

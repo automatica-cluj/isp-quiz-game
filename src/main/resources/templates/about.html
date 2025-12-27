@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>About ExamPrep Quiz</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .site-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .site-header a {
+            color: #fff;
+            text-decoration: none;
+            margin-left: 15px;
+        }
+        .site-header a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 { text-align: center; margin-bottom: 25px; }
+        .info-section { margin-bottom: 20px; line-height: 1.6; }
+        .info-section h2 { margin-bottom: 8px; }
+        .info-section a { color: #007bff; }
+        .site-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div>ExamPrep Quiz Game</div>
+        <nav>
+            <a th:href="@{/}">Play!</a>
+            <a href="https://control.aut.utcluj.ro:8000/rt-concepts/introducere_concepte_rt/#1-concepte-fundamentale" target="_blank" rel="noopener noreferrer">Learn!</a>
+            <a th:href="@{/leaderboard}">Leaderboard</a>
+            <a th:href="@{/about}">About</a>
+        </nav>
+    </header>
+    <div class="container">
+        <h1>How This Quiz Works</h1>
+
+        <section class="info-section">
+            <h2>Unlimited Attempts</h2>
+            You can take quizzes as many times as you want. Each run is independent, so feel free to practice until you
+            feel confident.
+        </section>
+
+        <section class="info-section">
+            <h2>Usernames & Scores</h2>
+            There is no authentication layer on top of usernames. You may use any name; if you achieve a higher score
+            with the same username, it overwrites the previous entry. Otherwise, the older (better) score stays visible.
+            The leaderboard currently shows only the latest best score per user.
+        </section>
+
+        <section class="info-section">
+            <h2>Scoring Behavior</h2>
+            The scoring algorithm may change over time as the course evolves. Pay attention to updates in announcements
+            or release notes.
+        </section>
+
+        <section class="info-section">
+            <h2>Randomized Questions & Answers</h2>
+            Each quiz run loads questions from the shared text bank and randomizes both the question selection and the
+            order of answers. The total bank size and the subset delivered per session depend on the current
+            configuration.
+        </section>
+
+        <section class="info-section">
+            <h2>Timing & Bonus Time</h2>
+            The quiz is time-limited and the remaining time is shown on the quiz page. When the optional bonus-time
+            feature is enabled you gain an extra <em>X</em> seconds every time you answer correctly.
+        </section>
+
+        <section class="info-section">
+            <h2>Report Bugs or Suggest Features</h2>
+            Please file issues (except question content corrections) in the public tracker:
+            <a href="https://github.com/automatica-cluj/isp-quiz-game/issues" target="_blank" rel="noopener noreferrer">
+                https://github.com/automatica-cluj/isp-quiz-game/issues
+            </a>.
+        </section>
+    </div>
+    <footer class="site-footer">
+        <div>© 2025 Mihai Hulea. This site is provided for educational purposes only and does not track IP addresses, cookies, or personal data.</div>
+        <div>Currently offering quizzes for the SSATR (Structuri Software pentru Aplicații de Timp Real) exam [IASIC, ICAF].</div>
+        <div><a href="https://control.aut.utcluj.ro" target="_blank" rel="noopener noreferrer">Visit control.aut.utcluj.ro</a></div>
+    </footer>
+</body>
+</html>
