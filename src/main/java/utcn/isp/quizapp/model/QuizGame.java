@@ -46,6 +46,14 @@ public class QuizGame {
         }
     }
 
+    public int getTotalQuestions() {
+        return questions != null ? questions.size() : 0;
+    }
+
+    public int getAnsweredQuestionsCount() {
+        return currentQuestionIndex;
+    }
+
     public int getCurrentScore() {
         return currentScore;
     }
@@ -64,5 +72,9 @@ public class QuizGame {
 
     public long getStartTime() { // Add this method
         return startTime;
+    }
+
+    public long getElapsedSeconds() {
+        return (System.currentTimeMillis() - startTime) / 1000;
     }
 }

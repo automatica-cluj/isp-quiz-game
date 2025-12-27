@@ -20,6 +20,28 @@
         h1, h2 {
             color: #333;
         }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stats-card {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        .stats-card span {
+            display: block;
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .stats-card strong {
+            font-size: 1.4em;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -75,12 +97,36 @@
         
         <h2>Total Completed Quizzes: <span th:text="${completedQuizCount}">0</span></h2>
         
+        <div class="stats-grid" th:if="${completedQuizCount > 0}">
+            <div class="stats-card">
+                <span>Total Questions Presented</span>
+                <strong th:text="${totalQuestionsAsked}">0</strong>
+            </div>
+            <div class="stats-card">
+                <span>Total Questions Answered</span>
+                <strong th:text="${totalQuestionsAnswered}">0</strong>
+            </div>
+            <div class="stats-card">
+                <span>Avg Accuracy</span>
+                <strong th:text="${#numbers.formatDecimal(averageAccuracy, 1, 1)} + '%'">0%</strong>
+            </div>
+            <div class="stats-card">
+                <span>Avg Duration</span>
+                <strong th:text="${#numbers.formatDecimal(averageDurationSeconds, 1, 1)} + 's'">0s</strong>
+            </div>
+        </div>
+
         <div th:if="${completedQuizCount > 0}">
             <table>
                 <thead>
                     <tr>
                         <th>User Name</th>
                         <th>Score</th>
+                        <th>Total Questions</th>
+                        <th>Answered</th>
+                        <th>Incorrect</th>
+                        <th>Accuracy</th>
+                        <th>Duration</th>
                         <th>Completion Time</th>
                     </tr>
                 </thead>
@@ -88,6 +134,11 @@
                     <tr th:each="quiz : ${completedQuizzes}">
                         <td th:text="${quiz.userName}">User</td>
                         <td th:text="${quiz.score}">0</td>
+                        <td th:text="${quiz.totalQuestions > 0} ? quiz.totalQuestions : 'N/A'">0</td>
+                        <td th:text="${quiz.answeredQuestions > 0} ? quiz.answeredQuestions : 'N/A'">0</td>
+                        <td th:text="${quiz.incorrectAnswers}">0</td>
+                        <td th:text="${quiz.totalQuestions > 0} ? #numbers.formatDecimal(quiz.accuracyPercentage, 1, 1) + '%' : 'N/A'">0%</td>
+                        <td th:text="${quiz.durationSeconds > 0} ? quiz.durationSeconds + 's' : 'N/A'">0s</td>
                         <td th:text="${#temporals.format(quiz.completionTime, 'HH:mm:ss dd-MM-yyyy')}">N/A</td>
                     </tr>
                 </tbody>

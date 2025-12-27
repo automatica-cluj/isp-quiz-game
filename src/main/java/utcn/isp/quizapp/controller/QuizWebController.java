@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpServletResponse; // Added import
 import jakarta.servlet.http.HttpSession; // For Spring Boot 3+
@@ -24,6 +25,7 @@ import java.nio.file.Files; // Added import
 import java.nio.file.Path; // Added import
 import java.nio.file.Paths; // Added import
 import java.io.IOException; // Added import
+import java.util.concurrent.ThreadLocalRandom;
 
 @Controller
 public class QuizWebController {
@@ -51,17 +53,27 @@ public class QuizWebController {
     }
 
     @GetMapping("/")
-    public String index(SessionStatus sessionStatus, HttpSession session) {
+    public String index(SessionStatus sessionStatus, HttpSession session, Model model) {
+        model.addAttribute("suggestedUsername", generateFunUsername());
         return "index";
     }
 
     @PostMapping("/start")
-    public String startGame(@RequestParam("username") String username, Model model) {
+    public String startGame(@RequestParam("username") String username,
+                            @RequestParam(value = "confirmOverwrite", defaultValue = "false") boolean confirmOverwrite,
+                            Model model) {
         if (username == null || username.trim().isEmpty()) {
             model.addAttribute("error", "Username cannot be empty.");
             return "index";
         }
-        quizSessionService.startNewGame(username.trim());
+        String trimmedName = username.trim();
+        if (leaderboard.hasUser(trimmedName) && !confirmOverwrite) {
+            model.addAttribute("overwriteWarning", "This username already exists on the leaderboard. Continue anyway?");
+            model.addAttribute("pendingUsername", trimmedName);
+            model.addAttribute("suggestedUsername", generateFunUsername());
+            return "index";
+        }
+        quizSessionService.startNewGame(trimmedName);
         if (!quizSessionService.hasNextQuestion()) {
              model.addAttribute("error", "No questions available to start the quiz.");
              return "index"; // Or a specific error page
@@ -82,24 +94,28 @@ public class QuizWebController {
         Question currentQuestion = quizSessionService.getCurrentQuestion();
         model.addAttribute("question", currentQuestion);
         model.addAttribute("game", quizSessionService.getCurrentGame()); 
-        long elapsedTime = System.currentTimeMillis() - quizSessionService.getCurrentGame().getStartTime();
-        long quizDurationMs = 60 * 1000; // Should be consistent with QuizSessionService
-        long remainingTime = Math.max(0, (quizDurationMs - elapsedTime) / 1000); // in seconds
-        model.addAttribute("remainingTime", remainingTime);
+        model.addAttribute("remainingTime", quizSessionService.getRemainingTimeSeconds());
 
         return "quiz";
     }
 
     @PostMapping("/submitAnswer")
     public String submitAnswer(@RequestParam("answer") int selectedOptionIndex,
-                               Model model) {
+                               RedirectAttributes redirectAttributes) {
         if (!quizSessionService.isGameActive() || quizSessionService.isTimeUp()) {
             return "redirect:/gameOver";
         }
 
         boolean correct = quizSessionService.submitAnswer(selectedOptionIndex);
+        String feedbackMessage = correct ? "Correct answer!" : "Incorrect answer.";
+        if (correct && quizSessionService.isBonusTimeActive()) {
+            feedbackMessage += " +" + quizSessionService.getBonusTimeSeconds() + "s bonus.";
+        }
+        String feedbackType = correct ? "success" : "error";
+        redirectAttributes.addFlashAttribute("answerFeedback", feedbackMessage);
+        redirectAttributes.addFlashAttribute("answerFeedbackType", feedbackType);
 
-        if (!correct || !quizSessionService.hasNextQuestion() || quizSessionService.isTimeUp()) {
+        if (!quizSessionService.hasNextQuestion() || quizSessionService.isTimeUp()) {
             return "redirect:/gameOver";
         }
         
@@ -117,12 +133,25 @@ public class QuizWebController {
         
         String userName = quizSessionService.getUserName();
         int score = quizSessionService.getScore();
+        int totalQuestions = quizSessionService.getTotalQuestionCount();
+        int answeredQuestions = quizSessionService.getAnsweredQuestionCount();
+        int incorrectAnswers = Math.max(0, answeredQuestions - score);
+        long durationSeconds = quizSessionService.getElapsedSeconds();
+        double accuracyPercentage = (totalQuestions > 0)
+                ? (score * 100.0) / totalQuestions
+                : 0.0;
 
         leaderboard.addScore(userName, score);
-        completedQuizService.addCompletedQuiz(new CompletedQuiz(userName, score)); // Add to completed quizzes
+        completedQuizService.addCompletedQuiz(
+                new CompletedQuiz(userName, score, totalQuestions, answeredQuestions, durationSeconds)); // Add to completed quizzes
 
         model.addAttribute("username", userName);
         model.addAttribute("score", score);
+        model.addAttribute("totalQuestions", totalQuestions);
+        model.addAttribute("answeredQuestions", answeredQuestions);
+        model.addAttribute("incorrectAnswers", incorrectAnswers);
+        model.addAttribute("durationSeconds", durationSeconds);
+        model.addAttribute("accuracyPercentage", accuracyPercentage);
         model.addAttribute("leaderboard", leaderboard.getAllScoresSorted());
         
         quizSessionService.endGame();
@@ -135,6 +164,52 @@ public class QuizWebController {
             return "redirect:/dashboard"; // Already logged in
         }
         return "dashboard-login";
+    }
+
+    @GetMapping("/leaderboard")
+    public String publicLeaderboard(Model model) {
+        model.addAttribute("leaderboard", leaderboard.getAllScoresSorted());
+        return "leaderboard";
+    }
+
+    private String generateFunUsername() {
+        String[] adjectives = {
+                // Personality traits
+                "Brave", "Curious", "Sneaky", "Swift", "Mighty", "Lucky", "Cheerful", "Witty",
+                "Clever", "Bold", "Zany", "Quirky", "Daring", "Crafty", "Plucky", "Spunky",
+                // Physical/speed
+                "Speedy", "Nimble", "Stealthy", "Agile", "Turbo", "Zippy", "Blazing", "Flying",
+                // Attitude
+                "Grumpy", "Sleepy", "Hungry", "Fancy", "Fuzzy", "Cosmic", "Epic", "Radical",
+                "Wacky", "Funky", "Groovy", "Jolly", "Merry", "Sassy", "Feisty", "Cheeky",
+                // Elemental/mystical
+                "Frozen", "Fiery", "Shadow", "Thunder", "Crystal", "Mystic", "Arcane", "Ancient",
+                // Colors
+                "Golden", "Silver", "Crimson", "Azure", "Emerald", "Violet", "Amber", "Onyx"
+        };
+
+        String[] nouns = {
+                // Animals
+                "Panda", "Fox", "Eagle", "Otter", "Falcon", "Wolf", "Bear", "Tiger",
+                "Dolphin", "Penguin", "Koala", "Badger", "Raccoon", "Hamster", "Llama", "Sloth",
+                "Owl", "Raven", "Dragon", "Phoenix", "Shark", "Panther", "Moose", "Squirrel",
+                // Fantasy/characters
+                "Ninja", "Wizard", "Pirate", "Knight", "Viking", "Samurai", "Ranger", "Mage",
+                "Goblin", "Troll", "Dwarf", "Giant", "Sprite", "Jester", "Bandit", "Rogue",
+                // Objects/misc
+                "Rocket", "Comet", "Pickle", "Waffle", "Taco", "Potato", "Noodle", "Muffin",
+                "Cactus", "Tornado", "Blizzard", "Asteroid", "Anvil", "Pretzel", "Biscuit", "Nugget"
+        };
+
+        for (int i = 0; i < 5; i++) {
+            String candidate = adjectives[ThreadLocalRandom.current().nextInt(adjectives.length)]
+                    + nouns[ThreadLocalRandom.current().nextInt(nouns.length)]
+                    + ThreadLocalRandom.current().nextInt(100, 999);
+            if (!leaderboard.hasUser(candidate)) {
+                return candidate;
+            }
+        }
+        return "Player" + ThreadLocalRandom.current().nextInt(1000, 9999);
     }
 
     @PostMapping("/dashboard-login")
@@ -170,6 +245,10 @@ public class QuizWebController {
         }
         model.addAttribute("completedQuizzes", completedQuizService.getCompletedQuizzes());
         model.addAttribute("completedQuizCount", completedQuizService.getCompletedQuizCount());
+        model.addAttribute("totalQuestionsAsked", completedQuizService.getTotalQuestionsAsked());
+        model.addAttribute("totalQuestionsAnswered", completedQuizService.getTotalAnsweredQuestions());
+        model.addAttribute("averageAccuracy", completedQuizService.getAverageAccuracyPercentage());
+        model.addAttribute("averageDurationSeconds", completedQuizService.getAverageDurationSeconds());
         return "dashboard-results"; // New template
     }
 

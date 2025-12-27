@@ -52,4 +52,36 @@ public class CompletedQuizService {
     public int getCompletedQuizCount(){
         return completedQuizzes.size();
     }
+
+    public int getTotalQuestionsAsked() {
+        return completedQuizzes.stream()
+                .mapToInt(CompletedQuiz::getTotalQuestions)
+                .sum();
+    }
+
+    public int getTotalAnsweredQuestions() {
+        return completedQuizzes.stream()
+                .mapToInt(CompletedQuiz::getAnsweredQuestions)
+                .sum();
+    }
+
+    public double getAverageAccuracyPercentage() {
+        if (completedQuizzes.isEmpty()) {
+            return 0.0;
+        }
+        double total = completedQuizzes.stream()
+                .mapToDouble(CompletedQuiz::getAccuracyPercentage)
+                .sum();
+        return total / completedQuizzes.size();
+    }
+
+    public double getAverageDurationSeconds() {
+        if (completedQuizzes.isEmpty()) {
+            return 0.0;
+        }
+        double total = completedQuizzes.stream()
+                .mapToDouble(CompletedQuiz::getDurationSeconds)
+                .sum();
+        return total / completedQuizzes.size();
+    }
 }

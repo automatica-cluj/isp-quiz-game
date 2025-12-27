@@ -112,4 +112,8 @@ public class Leaderboard {
                 .sorted()
                 .collect(Collectors.toList());
     }
+
+    public boolean hasUser(String userName) {
+        return userName != null && scores.containsKey(userName);
+    }
 }

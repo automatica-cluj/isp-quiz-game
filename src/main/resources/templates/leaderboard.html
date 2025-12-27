@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Leaderboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .site-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .site-header a {
+            color: #fff;
+            text-decoration: none;
+            margin-left: 15px;
+        }
+        .site-header a:hover {
+            text-decoration: underline;
+        }
+        .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f0f0f0; }
+        .empty { text-align: center; color: #666; margin-top: 20px; }
+        .site-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div>ExamPrep Quiz Game</div>
+        <nav>
+            <a th:href="@{/}">Home</a>
+            <a th:href="@{/leaderboard}">Leaderboard</a>
+        </nav>
+    </header>
+    <div class="container">
+        <h1>Leaderboard</h1>
+        <div th:if="${leaderboard == null or leaderboard.isEmpty()}" class="empty">
+            No scores yet. Be the first to play!
+        </div>
+        <table th:unless="${leaderboard == null or leaderboard.isEmpty()}">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="user, iterStat : ${leaderboard}">
+                    <td th:text="${iterStat.count}">1</td>
+                    <td th:text="${user.name}">Player</td>
+                    <td th:text="${user.score}">0</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <footer class="site-footer">
+        <div>© 2025 Mihai Hulea. This site is provided for educational purposes only and does not track IP addresses, cookies, or personal data.</div>
+        <div>Currently offering quizzes for the SSATR (Structuri Software pentru Aplicații de Timp Real) exam [IASIC, ICAF].</div>
+    </footer>
+</body>
+</html>

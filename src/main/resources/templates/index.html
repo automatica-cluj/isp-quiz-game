@@ -5,6 +5,24 @@
     <title>Java Quiz Demo</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .site-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .site-header a {
+            color: #fff;
+            text-decoration: none;
+            margin-left: 15px;
+        }
+        .site-header a:hover {
+            text-decoration: underline;
+        }
         .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
         h1 { color: #333; text-align: center; }
         label { display: block; margin-bottom: 8px; }
@@ -12,21 +30,109 @@
         input[type="submit"] { background-color: #5cb85c; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
         input[type="submit"]:hover { background-color: #4cae4c; }
         .error { color: red; margin-bottom: 15px; text-align: center;}
+        .funny-name {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .funny-name form button {
+            background-color: #17a2b8;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .funny-name form button:hover {
+            background-color: #138496;
+        }
+        .warning-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        .warning-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .warning-actions form button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .warning-actions form button.primary {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .warning-actions form button.secondary {
+            background-color: #17a2b8;
+            color: #fff;
+        }
+        .site-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
     </style>
 </head>
 <body>
+    <header class="site-header">
+        <div>ExamPrep Quiz Game</div>
+        <nav>
+            <a th:href="@{/}">Home</a>
+            <a th:href="@{/leaderboard}">Leaderboard</a>
+        </nav>
+    </header>
     <div class="container">
-        <h1>Welcome to Github Actions Demo Quiz!</h1>
-        <form th:action="@{/start}" method="post">
+        <h1>ExamPrep Quiz!</h1>
+        <form th:action="@{/start}" method="post" class="main-form">
             <div>
-                <label for="username">Enter your student id:</label>
-                <input type="text" id="username" name="username" required autofocus/>
+                <label for="username">Enter your username:</label>
+                <input type="text" id="username" name="username" required autofocus
+                       th:value="${pendingUsername != null} ? pendingUsername : ''"/>
             </div>
             <div th:if="${error}" class="error" th:text="${error}"></div>
             <div>
                 <input type="submit" value="Start Quiz!"/>
             </div>
         </form>
+        <div class="funny-name" th:if="${suggestedUsername}">
+            <p>Need inspiration?</p>
+            <form th:action="@{/start}" method="post">
+                <input type="hidden" name="username" th:value="${suggestedUsername}">
+                <button type="submit">Use this username: <span th:text="${suggestedUsername}">FunPlayer123</span></button>
+            </form>
+        </div>
+        <div th:if="${overwriteWarning}" class="warning-box">
+            <p th:text="${overwriteWarning}">Username already exists.</p>
+            <div class="warning-actions">
+                <form th:action="@{/start}" method="post">
+                    <input type="hidden" name="username" th:value="${pendingUsername}">
+                    <input type="hidden" name="confirmOverwrite" value="true">
+                    <button type="submit" class="primary">Yes, use my current name</button>
+                </form>
+                <form th:action="@{/start}" method="post">
+                    <input type="hidden" name="username" th:value="${suggestedUsername}">
+                    <button type="submit" class="secondary">
+                        Use this username:
+                        <span th:text="${suggestedUsername}">FunPlayer123</span>
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
+    <footer class="site-footer">
+        <div>© 2025 Mihai Hulea. This site is provided for educational purposes only and does not track IP addresses, cookies, or personal data.</div>
+        <div>Currently offering quizzes for the SSATR (Structuri Software pentru Aplicații de Timp Real) exam [IASIC, ICAF].</div>
+    </footer>
 </body>
 </html>
