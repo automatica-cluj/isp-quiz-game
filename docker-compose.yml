@@ -4,7 +4,7 @@ services:
   quiz-app:
     build: .
     ports:
-      - "8888:8888"
+      - "127.0.0.1:8889:8888"
     volumes:
       - ./leaderboard_data.txt:/app/leaderboard_data.txt
     environment:
