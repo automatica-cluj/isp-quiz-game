@@ -1,14 +1,15 @@
-# Use Eclipse Temurin OpenJDK 21 as base image
-FROM eclipse-temurin:21-jre
-
-# Set working directory
+# Stage 1: Build
+FROM eclipse-temurin:21-jdk AS builder
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+COPY .mvn ./.mvn
+COPY mvnw .
+RUN chmod +x mvnw && ./mvnw clean package -DskipTests
 
-# Copy the built jar into the container
-COPY target/isp-quiz-1.0-SNAPSHOT.jar app.jar
-
-# Expose the port the app runs on
+# Stage 2: Run
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+COPY --from=builder /app/target/isp-quiz-1.0-SNAPSHOT.jar app.jar
 EXPOSE 8888
-
-# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
